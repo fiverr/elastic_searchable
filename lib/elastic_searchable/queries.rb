@@ -12,7 +12,7 @@ module ElasticSearchable
     # http://www.elasticsearch.com/docs/elasticsearch/rest_api/search/
     def search(query, options = {})
       page = (options.delete(:page) || 1).to_i
-      options[:fields] ||= '_id'
+      #options[:fields] ||= '_id'
       options[:size] ||= per_page_for_search(options)
       options[:from] ||= options[:size] * (page - 1)
       if query.is_a?(Hash)
@@ -35,11 +35,11 @@ module ElasticSearchable
 
       response = ElasticSearchable.request :get, index_type_path('_search'), :query => query, :json_body => options
       hits = response['hits']
-      ids = hits['hits'].collect {|h| h['_id'].to_i }
-      results = self.find(ids).sort_by {|result| ids.index(result.id) }
+      origin = hits['hits'].collect {|h| h['_source'] }
+      #results = self.find(ids).sort_by {|result| ids.index(result.id) }
 
       page = WillPaginate::Collection.new(page, options[:size], hits['total'])
-      page.replace results
+      page.replace origin
       page
     end
 
